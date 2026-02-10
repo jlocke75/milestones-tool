@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milestones EOG Analyzer — Integrated Method</title>
+<style>
+  :root {
+    --navy: #1e293b;
+    --indigo: #4338ca;
+    --indigo-light: #6366f1;
+    --indigo-bg: #eef2ff;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --red-border: #fecaca;
+    --yellow: #ca8a04;
+    --yellow-bg: #fefce8;
+    --yellow-border: #fef08a;
+    --green: #16a34a;
+    --green-bg: #f0fdf4;
+    --green-border: #bbf7d0;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1e293b;
+    --gray-900: #0f172a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-800);
+    line-height: 1.5;
+    padding: 16px;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--indigo) 100%);
+    color: white;
+    padding: 20px 24px;
+    border-radius: 12px 12px 0 0;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .header p { font-size: 13px; opacity: 0.7; margin-top: 2px; }
+
+  /* Main content area */
+  .main {
+    background: white;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 24px;
+  }
+
+  /* Import phase */
+  .import-phase {}
+  .import-phase h2 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .import-phase .subtitle { font-size: 13px; color: var(--gray-500); margin-bottom: 12px; }
+
+  textarea {
+    width: 100%;
+    height: 220px;
+    padding: 12px;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: var(--indigo); }
+
+  .btn {
+    display: inline-block;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--indigo); color: white; }
+  .btn-primary:hover { background: var(--indigo-light); }
+  .btn-secondary { background: var(--gray-200); color: var(--gray-700); }
+  .btn-secondary:hover { background: var(--gray-300); }
+  .btn-sm { padding: 6px 16px; font-size: 12px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .status { font-size: 13px; margin-top: 8px; }
+  .status-ok { color: var(--green); }
+  .status-err { color: var(--red); }
+
+  /* Report phase - single screen */
+  .report-phase { display: none; }
+  .report-phase.active { display: block; }
+  .import-phase.hidden { display: none; }
+
+  /* Student header bar */
+  .student-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--gray-200);
+    margin-bottom: 20px;
+  }
+  .student-name { font-size: 24px; font-weight: 700; color: var(--navy); }
+  .student-meta { font-size: 13px; color: var(--gray-500); }
+  .score-badge {
+    font-size: 32px;
+    font-weight: 800;
+    text-align: right;
+  }
+  .score-badge .raw { font-size: 12px; color: var(--gray-500); font-weight: 400; }
+  .score-badge .level { font-size: 12px; font-weight: 600; }
+  .score-high { color: var(--green); }
+  .score-mid { color: var(--yellow); }
+  .score-low { color: var(--red); }
+
+  /* Profile section */
+  .profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .profile-grid label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-600);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .profile-grid select, .profile-grid input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+  }
+  .profile-grid select:focus, .profile-grid input:focus { border-color: var(--indigo); }
+
+  /* Flag toggles */
+  .flag-row {
+    margin-bottom: 20px;
+  }
+  .flag-row label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-600);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .flag-toggles { display: flex; gap: 8px; flex-wrap: wrap; }
+  .flag-btn {
+    padding: 6px 14px;
+    border: 1px solid var(--gray-300);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    background: white;
+    color: var(--gray-600);
+    transition: all 0.2s;
+  }
+  .flag-btn:hover { border-color: var(--indigo); color: var(--indigo); }
+  .flag-btn.active {
+    background: var(--indigo);
+    color: white;
+    border-color: var(--indigo);
+  }
+
+  /* Standards grid */
+  .standards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .std-col {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid;
+  }
+  .std-col h4 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .std-col ul { list-style: none; }
+  .std-col li { font-size: 12px; margin-bottom: 3px; }
+  .std-col li strong { font-weight: 700; }
+  .std-col.critical { background: var(--red-bg); border-color: var(--red-border); }
+  .std-col.critical h4 { color: var(--red); }
+  .std-col.developing { background: var(--yellow-bg); border-color: var(--yellow-border); }
+  .std-col.developing h4 { color: var(--yellow); }
+  .std-col.strength { background: var(--green-bg); border-color: var(--green-border); }
+  .std-col.strength h4 { color: var(--green); }
+  .std-empty { font-size: 12px; color: var(--gray-400); font-style: italic; }
+
+  /* Generate button */
+  .generate-bar {
+    margin-bottom: 24px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .generate-bar .btn { flex-shrink: 0; }
+
+  /* AI Report section */
+  .report-section {
+    border-top: 2px solid var(--gray-200);
+    padding-top: 20px;
+  }
+  .report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .report-header h3 { font-size: 16px; font-weight: 700; color: var(--navy); }
+  .report-content {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 20px;
+    font-size: 13px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  .report-placeholder {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--gray-400);
+    font-size: 14px;
+  }
+
+  /* Spinner */
+  .spinner-wrap { text-align: center; padding: 48px 20px; }
+  .spinner {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--gray-200);
+    border-top-color: var(--indigo);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-text { margin-top: 12px; color: var(--gray-500); font-size: 13px; }
+
+  /* Copy feedback */
+  .copy-feedback {
+    font-size: 12px;
+    color: var(--green);
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .copy-feedback.show { opacity: 1; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--gray-400);
+    margin-top: 16px;
+    padding: 8px;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .standards-grid { grid-template-columns: 1fr; }
+    .profile-grid { grid-template-columns: 1fr; }
+    .student-header { flex-direction: column; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Milestones EOG Analyzer</h1>
+    <p>Integrated Method Diagnostic Tool</p>
+  </div>
+
+  <div class="main">
+    <!-- IMPORT PHASE -->
+    <div id="importPhase" class="import-phase">
+      <h2>Import Student Data</h2>
+      <p class="subtitle">Paste the full text from the Progress Learning student result page.</p>
+      <textarea id="rawInput" placeholder="Paste Progress Learning data here..."></textarea>
+      <div id="parseStatus" class="status"></div>
+      <div style="margin-top: 12px;">
+        <button class="btn btn-primary" onclick="parseData()">Parse Data</button>
+      </div>
+    </div>
+
+    <!-- REPORT PHASE (single screen) -->
+    <div id="reportPhase" class="report-phase">
+
+      <!-- Student Header -->
+      <div class="student-header">
+        <div>
+          <div class="student-name" id="studentName"></div>
+          <div class="student-meta" id="studentMeta"></div>
+        </div>
+        <div>
+          <div class="score-badge" id="scoreBadge"></div>
+          <div style="text-align:right; margin-top: 8px;">
+            <button class="btn btn-secondary btn-sm" onclick="resetAnalyzer()">New Student</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Inputs -->
+      <div class="profile-grid">
+        <div>
+          <label>Organizational Profile</label>
+          <select id="orgProfile">
+            <option value="">Not assigned</option>
+            <option value="List (Weak)">List (Weak)</option>
+            <option value="List (Standard)">List (Standard)</option>
+            <option value="List (Voice present)">List (Voice present)</option>
+            <option value="Sequential (Weak)">Sequential (Weak)</option>
+            <option value="Sequential (Standard)">Sequential (Standard)</option>
+            <option value="Sequential (Causal potential)">Sequential (Causal potential)</option>
+            <option value="Categorical (Weak)">Categorical (Weak)</option>
+            <option value="Categorical (Standard)">Categorical (Standard)</option>
+            <option value="Categorical (Strong)">Categorical (Strong)</option>
+            <option value="Categorical (Causal potential)">Categorical (Causal potential)</option>
+            <option value="Categorical (Transitional)">Categorical (Transitional)</option>
+            <option value="Sequential-Categorical (Hybrid)">Sequential-Categorical (Hybrid)</option>
+            <option value="Transitional (Emerging chain)">Transitional (Emerging chain)</option>
+            <option value="Connective (Ready)">Connective (Ready)</option>
+          </select>
+        </div>
+        <div>
+          <label>Feedback Cluster</label>
+          <select id="feedbackCluster">
+            <option value="">Not assigned</option>
+            <option value="A (High-Support)">A (High-Support)</option>
+            <option value="B (Independent)">B (Independent)</option>
+            <option value="C (Directive)">C (Directive)</option>
+            <option value="D (Example-Driven)">D (Example-Driven)</option>
+            <option value="E (Rule-Based)">E (Rule-Based)</option>
+            <option value="F (Socratic)">F (Socratic)</option>
+          </select>
+        </div>
+        <div>
+          <label>Writing Tier</label>
+          <select id="writingTier">
+            <option value="">Not assigned</option>
+            <option value="1">Tier 1</option>
+            <option value="2">Tier 2</option>
+            <option value="3">Tier 3</option>
+            <option value="4">Tier 4</option>
+          </select>
+        </div>
+        <div>
+          <label>Period</label>
+          <select id="period">
+            <option value="">—</option>
+            <option value="1st">1st</option>
+            <option value="4th">4th</option>
+            <option value="5th">5th</option>
+            <option value="6th">6th</option>
+            <option value="7th">7th</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Flag Toggles -->
+      <div class="flag-row">
+        <label>Flags</label>
+        <div class="flag-toggles">
+          <button class="flag-btn" data-flag="VS" onclick="toggleFlag(this)">VS (Volume-Sensitive)</button>
+          <button class="flag-btn" data-flag="TS" onclick="toggleFlag(this)">TS (Tone-Sensitive)</button>
+          <button class="flag-btn" data-flag="AVP" onclick="toggleFlag(this)">AVP (Anti-Vague-Praise)</button>
+          <button class="flag-btn" data-flag="FA" onclick="toggleFlag(this)">FA (Feedback-Averse)</button>
+        </div>
+      </div>
+
+      <!-- QW Notes -->
+      <div style="margin-bottom: 20px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:var(--gray-600); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">QW / Writing Notes (optional)</label>
+        <input type="text" id="qwNotes" placeholder="e.g., Strong voice, circular reasoning, needs sensory detail..." style="width:100%; padding:8px 10px; border:1px solid var(--gray-300); border-radius:6px; font-size:13px; outline:none;">
+      </div>
+
+      <!-- Standards Grid -->
+      <div class="standards-grid" id="standardsGrid"></div>
+
+      <!-- Generate Button -->
+      <div class="generate-bar">
+        <button class="btn btn-primary" id="generateBtn" onclick="generateReport()">Generate AI Diagnostic Report</button>
+        <span id="copyFeedback" class="copy-feedback"></span>
+      </div>
+
+      <!-- AI Report -->
+      <div class="report-section">
+        <div class="report-header">
+          <h3>Diagnostic Report</h3>
+          <button class="btn btn-secondary btn-sm" id="copyBtn" onclick="copyReport()" style="display:none;">Copy Report</button>
+        </div>
+        <div id="reportContent">
+          <div class="report-placeholder">Click "Generate AI Diagnostic Report" to create the analysis.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Integrated Method &bull; Building Writers, Not Better Drafts &bull; Fannin County Middle School</div>
+</div>
+
+<script>
+// ========== STATE ==========
+let parsedStudent = null;
+let currentReport = '';
+let activeFlags = [];
+
+// ========== PARSER ==========
+function parseData() {
+  const text = document.getElementById('rawInput').value;
+  const statusEl = document.getElementById('parseStatus');
+
+  if (!text.trim()) {
+    statusEl.className = 'status status-err';
+    statusEl.textContent = 'Paste student data first.';
+    return;
+  }
+
+  try {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
+    // Student name
+    let studentName = 'Unknown';
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i] === 'Student Name' && lines[i+1]) { studentName = lines[i+1]; break; }
+    }
+
+    // Score
+    let score = 0, rawScore = '';
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i] === 'Score' && lines[i+1]) {
+        const m = lines[i+1].match(/(\d+)%/);
+        if (m) score = parseInt(m[1]);
+        if (lines[i+2] && lines[i+2].includes('/')) rawScore = lines[i+2].replace(/[()]/g, '');
+        break;
+      }
+    }
+
+    // Date
+    let dateCompleted = '';
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i] === 'Date Completed' && lines[i+1]) { dateCompleted = lines[i+1]; break; }
+    }
+
+    // Elapsed time
+    let elapsedTime = '';
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i] === 'Elapsed Time' && lines[i+1]) { elapsedTime = lines[i+1]; break; }
+    }
+
+    // Standards
+    const standards = {};
+    const standardNames = [
+      'Figurative Language', 'Transitions', 'Use Figurative Language',
+      'Plot Structures', 'Poetic Techniques', 'Expository Writing',
+      'Generate Questions', 'Credible and Relevant Sources', 'Quote Accurately',
+      'Types of Sentences', 'Precise Words and Phrases', 'Formal and Informal English',
+      'Evidence', 'Modifiers', 'Word Relationships', 'Etymology',
+      'Narrative Techniques', 'Expository Techniques', 'Poetry Writing',
+      'Compare and Contrast', 'Text Structures',
+      // Science standards
+      'Moon Phases', 'Eclipses', 'Seasons', 'Position in Universe',
+      'Location of Water', 'Water Cycle', 'Planets',
+      'Comets Asteroids Meteoroids', 'Gravity and Inertia',
+      'Waves Currents Tides', 'Seafloor Features',
+      'Atmospheric Layers', 'Heat Transfer', 'Wind',
+      'Meteorological Events', 'Earths Layers', 'Weathering and Erosion',
+      'Plate Tectonics', 'Fossils and Climate'
+    ];
+
+    for (let i = 0; i < lines.length; i++) {
+      for (const stdName of standardNames) {
+        const variants = [stdName, stdName.replace(' and ', ' & '), stdName.replace(' and ', ' And ')];
+        if (variants.some(v => lines[i] === v || lines[i].toLowerCase() === v.toLowerCase())) {
+          if (lines[i+1] && lines[i+1].includes('/')) {
+            const parts = lines[i+1].split('/');
+            const earned = parseFloat(parts[0]) || 0;
+            const possible = parseFloat(parts[1]) || 1;
+            let pct = 0;
+            if (lines[i+2] && lines[i+2].includes('%')) {
+              pct = parseInt(lines[i+2].replace('%', '')) || 0;
+            }
+            standards[stdName] = { earned, possible, percentage: pct };
+          }
+          break;
+        }
+      }
+    }
+
+    parsedStudent = { name: studentName, score, rawScore, dateCompleted, elapsedTime, standards };
+    statusEl.className = 'status status-ok';
+    statusEl.textContent = 'Parsed: ' + studentName + ' — ' + score + '%';
+
+    showReportPhase();
+
+  } catch (err) {
+    statusEl.className = 'status status-err';
+    statusEl.textContent = 'Parse error: ' + err.message;
+  }
+}
+
+// ========== UI TRANSITIONS ==========
+function showReportPhase() {
+  document.getElementById('importPhase').classList.add('hidden');
+  document.getElementById('reportPhase').classList.add('active');
+  renderStudentHeader();
+  renderStandardsGrid();
+}
+
+function resetAnalyzer() {
+  parsedStudent = null;
+  currentReport = '';
+  activeFlags = [];
+  document.getElementById('rawInput').value = '';
+  document.getElementById('parseStatus').textContent = '';
+  document.getElementById('orgProfile').value = '';
+  document.getElementById('feedbackCluster').value = '';
+  document.getElementById('writingTier').value = '';
+  document.getElementById('period').value = '';
+  document.getElementById('qwNotes').value = '';
+  document.querySelectorAll('.flag-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('copyBtn').style.display = 'none';
+  document.getElementById('reportContent').innerHTML = '<div class="report-placeholder">Click "Generate AI Diagnostic Report" to create the analysis.</div>';
+  document.getElementById('reportPhase').classList.remove('active');
+  document.getElementById('importPhase').classList.remove('hidden');
+}
+
+// ========== RENDER ==========
+function renderStudentHeader() {
+  if (!parsedStudent) return;
+  document.getElementById('studentName').textContent = parsedStudent.name;
+  document.getElementById('studentMeta').textContent =
+    (parsedStudent.dateCompleted || '') +
+    (parsedStudent.elapsedTime ? ' • Time: ' + parsedStudent.elapsedTime : '');
+
+  const scoreClass = parsedStudent.score >= 70 ? 'score-high' : parsedStudent.score >= 50 ? 'score-mid' : 'score-low';
+  const level = getAchievementLevel(parsedStudent.score);
+  document.getElementById('scoreBadge').innerHTML =
+    '<div class="' + scoreClass + '">' + parsedStudent.score + '%</div>' +
+    '<div class="raw">' + (parsedStudent.rawScore || '') + '</div>' +
+    '<div class="level">' + level + '</div>';
+}
+
+function renderStandardsGrid() {
+  if (!parsedStudent) return;
+  const { critical, developing, strengths } = categorizeStandards(parsedStudent.standards);
+  const grid = document.getElementById('standardsGrid');
+
+  function renderCol(items, cls, title) {
+    let html = '<div class="std-col ' + cls + '"><h4>' + title + '</h4>';
+    if (items.length === 0) {
+      html += '<div class="std-empty">None</div>';
+    } else {
+      html += '<ul>';
+      items.forEach(s => { html += '<li>' + s.name + ': <strong>' + s.percentage + '%</strong></li>'; });
+      html += '</ul>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  grid.innerHTML =
+    renderCol(critical, 'critical', 'Needs Focus (≤35%)') +
+    renderCol(developing, 'developing', 'Developing (36-69%)') +
+    renderCol(strengths, 'strength', 'Strengths (≥70%)');
+}
+
+// ========== HELPERS ==========
+function getAchievementLevel(score) {
+  if (score < 50) return 'Beginning Learner';
+  if (score < 65) return 'Developing Learner';
+  if (score < 80) return 'Proficient Learner';
+  return 'Distinguished Learner';
+}
+
+function categorizeStandards(standards) {
+  const critical = [], developing = [], strengths = [];
+  Object.entries(standards).forEach(([name, data]) => {
+    const item = { name, ...data };
+    if (data.percentage <= 35) critical.push(item);
+    else if (data.percentage < 70) developing.push(item);
+    else strengths.push(item);
+  });
+  return { critical, developing, strengths };
+}
+
+function toggleFlag(btn) {
+  const flag = btn.dataset.flag;
+  if (btn.classList.contains('active')) {
+    btn.classList.remove('active');
+    activeFlags = activeFlags.filter(f => f !== flag);
+  } else {
+    btn.classList.add('active');
+    activeFlags.push(flag);
+  }
+}
+
+function getFlags() {
+  return activeFlags.length > 0 ? activeFlags.join(', ') : 'None';
+}
+
+// ========== GENERATE REPORT ==========
+async function generateReport() {
+  if (!parsedStudent) return;
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+  document.getElementById('copyBtn').style.display = 'none';
+  document.getElementById('reportContent').innerHTML =
+    '<div class="spinner-wrap"><div class="spinner"></div><div class="spinner-text">Generating diagnostic report...</div></div>';
+
+  const { critical, developing, strengths } = categorizeStandards(parsedStudent.standards);
+  const achievementLevel = getAchievementLevel(parsedStudent.score);
+  const orgProfile = document.getElementById('orgProfile').value;
+  const feedbackCluster = document.getElementById('feedbackCluster').value;
+  const writingTier = document.getElementById('writingTier').value;
+  const period = document.getElementById('period').value;
+  const qwNotes = document.getElementById('qwNotes').value;
+  const flags = getFlags();
+
+  const prompt = `You are an expert 6th grade ELA teacher using the Integrated Method. Generate a compressed diagnostic report for this student. Follow the gold-standard format exactly.
+
+STUDENT DATA:
+- Name: ${parsedStudent.name}
+- Period: ${period || 'Not specified'}
+- Score: ${parsedStudent.score}% (${parsedStudent.rawScore})
+- Achievement Level: ${achievementLevel}
+- Elapsed Time: ${parsedStudent.elapsedTime}
+- Date: ${parsedStudent.dateCompleted}
+
+STUDENT PROFILE:
+- Organizational Profile: ${orgProfile || 'Not assigned'}
+- Feedback Cluster: ${feedbackCluster || 'Not assigned'}
+- Flags: ${flags}
+- Writing Tier: ${writingTier || 'Not assigned'}
+- QW/Writing Notes: ${qwNotes || 'None provided'}
+
+STANDARDS PERFORMANCE:
+
+Critical Gaps (≤35%):
+${critical.length > 0 ? critical.map(s => '- ' + s.name + ': ' + s.percentage + '%').join('\n') : '- None'}
+
+Developing (36-69%):
+${developing.length > 0 ? developing.map(s => '- ' + s.name + ': ' + s.percentage + '%').join('\n') : '- None'}
+
+Strengths (≥70%):
+${strengths.length > 0 ? strengths.map(s => '- ' + s.name + ': ' + s.percentage + '%').join('\n') : '- None'}
+
+Generate the report in EXACTLY this compressed format:
+
+**${parsedStudent.name}** | Period ${period || '—'} | Score: **${parsedStudent.score}%** (${parsedStudent.rawScore})
+
+**PROFILE**
+Organizational Profile: ${orgProfile || 'Not assigned'}
+Feedback Cluster: ${feedbackCluster || 'Not assigned'}
+Writing Tier: ${writingTier || 'Not assigned'}
+Flags: ${flags}
+QW11 Summary: ${qwNotes || '—'}
+
+**DOMAIN SNAPSHOT**
+Create a three-column text layout:
+Critical Gaps (≤35%) | Developing (36-69%) | Strengths (≥70%)
+List each standard and percentage in the appropriate column.
+
+**PRIMARY DIAGNOSIS**
+Write the primary failure type in bold (Knowledge Failure, Application Failure, Task Interpretation Failure, Activation Failure, Regulation Failure, Avoidance Failure, or Access Route Mismatch). Then 2-3 sentences explaining the specific error pattern you see in the data. Connect to the organizational profile if provided. Be specific about which items or standards reveal the pattern.
+
+**PRIORITY INTERVENTIONS**
+Number 1-3. Each has a Target in bold and an Approach. The approach should be 1-2 sentences with specific, actionable strategies. If feedback cluster is provided, match the delivery language to the cluster.
+
+**CONFERENCE OPENER**
+Write a single italicized sentence or two that the teacher could use to open a conference with this student. Match to the feedback cluster if provided.
+
+**MONITORING NOTES**
+• 3 bullet points: what to watch for, the student's likely trajectory, and the instructional pathway
+
+Keep the entire report concise — it should fit on roughly half a page when printed. Do not add sections beyond what's listed above.`;
+
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      document.getElementById('reportContent').innerHTML =
+        '<div class="report-content" style="color:var(--red);">Error: ' + (data.error.message || data.error) + '</div>';
+    } else if (data.content && data.content[0]) {
+      currentReport = data.content[0].text;
+      document.getElementById('reportContent').innerHTML =
+        '<div class="report-content">' + currentReport + '</div>';
+      document.getElementById('copyBtn').style.display = 'inline-block';
+    } else {
+      document.getElementById('reportContent').innerHTML =
+        '<div class="report-content" style="color:var(--red);">No response received.</div>';
+    }
+  } catch (err) {
+    document.getElementById('reportContent').innerHTML =
+      '<div class="report-content" style="color:var(--red);">Error: ' + err.message + '</div>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generate AI Diagnostic Report';
+  }
+}
+
+// ========== COPY ==========
+function copyReport() {
+  if (!currentReport) return;
+  const feedback = document.getElementById('copyFeedback');
+
+  // Build full copyable text: profile + standards + AI report
+  let fullText = parsedStudent.name + ' | Score: ' + parsedStudent.score + '% (' + parsedStudent.rawScore + ') | ' + getAchievementLevel(parsedStudent.score) + '\n';
+  fullText += 'Date: ' + (parsedStudent.dateCompleted || '') + ' | Time: ' + (parsedStudent.elapsedTime || '') + '\n\n';
+  fullText += currentReport;
+
+  // Use execCommand fallback for sandbox compatibility
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = fullText;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+
+    feedback.textContent = 'Copied (' + fullText.length + ' chars)';
+    feedback.classList.add('show');
+    setTimeout(() => feedback.classList.remove('show'), 2500);
+  } catch (err) {
+    // Final fallback: select the report text
+    const range = document.createRange();
+    const reportEl = document.querySelector('.report-content');
+    if (reportEl) {
+      range.selectNodeContents(reportEl);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+    }
+    feedback.textContent = 'Text selected — press Ctrl+C';
+    feedback.classList.add('show');
+    setTimeout(() => feedback.classList.remove('show'), 3000);
+  }
+}
+</script>
+
+</body>
+</html>
